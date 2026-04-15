@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Travel Sathi - Your AI Navigator</title>
+    <style>
+        /* 1. Background with Plane Taking Off */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+                        url('https://images.unsplash.com/photo-1506012733851-bb60a332ea35?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* 2. Glassmorphism Chat Window */
+        .chat-container {
+            width: 400px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.15); /* Semi-transparent */
+            backdrop-filter: blur(15px); /* Frosty effect */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        #chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            color: white;
+        }
+
+        .message { margin-bottom: 15px; padding: 10px; border-radius: 10px; max-width: 80%; }
+        .user { background: rgba(0, 123, 255, 0.4); align-self: flex-end; margin-left: auto; }
+        .bot { background: rgba(255, 255, 255, 0.2); align-self: flex-start; }
+
+        .input-area {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: none;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            background: #ff6b6b; /* Travel-themed coral color */
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">✈️ Travel Sathi</div>
+    <div id="chat-box">
+        <div class="message bot">Hello! Ready to fly? Ask me anything about your next trip!</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Where to next?">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    async function sendMessage() {
+        const input = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+        const message = input.value;
+        if (!message) return;
+
+        // 1. Show User Message
+        chatBox.innerHTML += `<div class="message user">${message}</div>`;
+        input.value = '';
+
+        // 2. Call FastAPI Backend
+        try {
+            const response = await fetch('http://localhost:8000/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+            const data = await response.json();
+
+            // 3. Show Bot Response
+            chatBox.innerHTML += `<div class="message bot">${data.reply}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 4. Play Audio Automatically
+            const audio = new Audio(data.audio_url);
+            audio.play();
+
+        } catch (error) {
+            console.error("Error:", error);
+            chatBox.innerHTML += `<div class="message bot">System error. Is the backend running?</div>`;
+        }
+    }
+</script>
+
+</body>
+</html>
